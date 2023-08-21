@@ -86,3 +86,4 @@ export default function Roulette({ data }) {
 }
 
 const iso2FlagEmoji = iso => String.fromCodePoint(...[...iso.toUpperCase()].map(char => char.charCodeAt(0) + 127397));
+// comment random
