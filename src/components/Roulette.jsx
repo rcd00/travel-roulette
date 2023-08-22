@@ -5,33 +5,25 @@ import { RestartIcon, StartIcon } from "./Icon";
 
 const COUNTRY = 'Country';
 const STATE = 'State/Province';
-const CITY = 'City';
 
-const options = [COUNTRY, STATE, CITY];
+const options = [COUNTRY, STATE];
 
 export default function Roulette({ data }) {
     const [rouletteOption, setRouletteOption] = useState('');
     const [randomPlace, setRandomPlace] = useState('');
+    const [flag, setFlag] = useState('');
     const [selectedCountry, setSelectedCountry] = useState({});
 
     const countries = data.data;
     const countriesWithStates = countries.filter(country => country.states.length).sort((a, b) => a.name - b.name);
 
-    function handleGetRandomPlace(e) {
 
+    function handleRestart(e) {
+        e.preventDefault();
+
+        setRouletteOption('');
         setRandomPlace('');
-
-        if (rouletteOption === COUNTRY) {
-            const randomCountry = getRandomPlace(countries);
-            setRandomPlace(randomCountry.name);
-        } else if (rouletteOption === STATE) {
-            const countryStates = countriesWithStates.find((country) => country.name === selectedCountry).states;
-            const randomState = getRandomPlace(countryStates);
-            setRandomPlace(randomState.name);
-        }
-    };
-
-    console.log(randomPlace);
+    }
 
     function handleRoulette(e) {
         e.preventDefault();
@@ -49,12 +41,21 @@ export default function Roulette({ data }) {
         console.log(selectedCountry);
     }
 
-    function handleRestart(e) {
-        e.preventDefault();
+    function handleGetRandomPlace(e) {
 
-        setRouletteOption('');
         setRandomPlace('');
-    }
+
+        if (rouletteOption === COUNTRY) {
+            const randomCountry = getRandomPlace(countries);
+            setRandomPlace(randomCountry.name);
+            setFlag(randomCountry.iso2);
+        } else if (rouletteOption === STATE) {
+            const countryOfState = countriesWithStates.find((country) => country.name === selectedCountry);
+            const randomState = getRandomPlace(countryOfState.states);
+            setRandomPlace(randomState.name);
+            setFlag(countryOfState.iso2);
+        }
+    };
 
     function handleDisableStart() {
         if (rouletteOption === '') {
@@ -67,17 +68,21 @@ export default function Roulette({ data }) {
     }
 
     const buttonIsDisabled = handleDisableStart();
+    const flagEmoji = iso2FlagEmoji(flag);
 
     const resultsMarkup = randomPlace !== '' && (
-        <div id='results' className="flex flex-col justify-center p-2">
-            <span className="text-xl p-2 text-center">Go to: {randomPlace}!</span>
-            <div className="flex border rounded-xl p-20"></div>
+        <div id='results' className="flex flex-col justify-center pt-10">
+            <h2 className="text-2xl text-center pb-2">Result</h2>
+            <span className="text-xl p-2 text-center">{rouletteOption === COUNTRY ? `${flagEmoji} ${randomPlace} ${flagEmoji}` : `${flagEmoji} ${randomPlace}, ${selectedCountry} ${flagEmoji}`}</span>
+            <span className="results-maps text-center">
+                <a href={`https://www.google.com/maps/place/${rouletteOption === COUNTRY ? randomPlace : `${randomPlace}, ${selectedCountry}`}`} target='_blank' className="font-medium text-blue-600 dark:text-blue-500 hover:underline">See in google maps</a>
+            </span>
         </div>
     );
 
     const randomStateMarkup = (
         <div className="flex flex-col p-2 justify-center">
-            <div className="flex flex-col text-center pb-2">
+            <div className="flex flex-col text-center p-2">
                 Pick a country:
             </div>
             <div id='countries-with-states' className="flex flex-wrap justify-center gap-2">
@@ -91,9 +96,9 @@ export default function Roulette({ data }) {
 
     return (
         <div className="flex flex-col" >
-            <h1 className="text-xl text-center">Travel Roulette</h1>
+            <h1 className="text-3xl p-5 text-center">Travel Roulette</h1>
             {/* Main container */}
-            <div id='roulette' className="border rounded-lg p-20 flex flex-col">
+            <div id='roulette' className="flex flex-col">
                 <div id='roulette-options' className="flex justify-center gap-x-2">
                     {options.map((option, index) => (
                         <button key={index} onClick={handleRoulette} className={`p-2 border rounded-lg hover:bg-gray-100 ${option === rouletteOption && 'bg-gray-200'}`}>{option}</button>
